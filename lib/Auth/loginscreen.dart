@@ -18,7 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _password = TextEditingController();
   bool session = false;
   bool isLoad = false;
-  List UserData = [];
+  List UserData = [];  bool _isObscure = true;
 
   @override
   Widget build(BuildContext context) {
@@ -125,21 +125,33 @@ class _LoginPageState extends State<LoginPage> {
                           validator: (value) => value!.isEmpty
                               ? 'Password cannot be blank'
                               : null,
-                          obscureText: true,
+                          obscureText: _isObscure,
                           style: TextStyle(
                               fontFamily: Constants.regular,
                               color: Colors.black,
                               fontSize: 18),
                           decoration: InputDecoration(
                               contentPadding: EdgeInsets.only(left: 20),
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontFamily: Constants.regular,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isObscure = !_isObscure;
+                                  });
+                                },
                               ),
+
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
+                                borderRadius:
+                                BorderRadius.circular(10.0),
                               ),
-                              hintText: 'enter password'),
+                              filled: false,
+                              hintText: "  Password",
+                              fillColor: Colors.white70),
                         )),
                   ),
                   const SizedBox(
@@ -235,11 +247,11 @@ class _LoginPageState extends State<LoginPage> {
             });
           } else {
             if (storesession == true) {
-              // int userid = data['user']['id'];
+              int userid = data['data']['user']['id'];
               String token = data['data']['token'];
-              String name = data['data']['name'];
+              String name = data['data']['user']['name'];
               SharedPreferences prefs = await SharedPreferences.getInstance();
-              // prefs.setInt('userid', userid);
+              prefs.setInt('userid', userid);
               prefs.setString('token', token);
               prefs.setString('name', name);
               prefs.getString("UserList");
@@ -248,15 +260,15 @@ class _LoginPageState extends State<LoginPage> {
                 prefs.setString(
                     "UserList",
                     jsonEncode([
-                      { "token": token, "name": name}
-                      // {"UserID": "$userid", "token": token, "name": name}
+                      // { "token": token, "name": name}
+                      {"UserID": "$userid", "token": token, "name": name}
                     ]));
               } else {
                 String? data = prefs.getString("UserList");
                 List DecodeUser = jsonDecode(data!);
                 DecodeUser.add(
-                    {"token": token, "name": name});
-                    // {"UserID": "$userid", "token": token, "name": name});
+                    // {"token": token, "name": name});
+                    {"UserID": "$userid", "token": token, "name": name});
                 prefs.setString("UserList", jsonEncode(DecodeUser));
               }
             } else {

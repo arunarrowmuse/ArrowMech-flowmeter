@@ -72,10 +72,8 @@ class _SubMachineState extends State<SubMachine> {
         // "categories": _textFieldController.text,
         "category_id": widget.id,
         "name": subname.text,
-
-        /// we want to add this below ones
-        // "iot_device_id": iotID.text ,
-        // "local_device_id": localID.text,
+        "iot_device_id": iotID.text ,
+        "local_device_id": localID.text,
       }),
     );
     if (response.statusCode == 200) {
@@ -101,8 +99,8 @@ class _SubMachineState extends State<SubMachine> {
         // '_method': 'PUT',
         "category_id": widget.id,
         "name": subname.text,
-        // "iot_device_id": iotID.text,
-        // "local_device_id": localID.text,
+        "iot_device_id": iotID.text,
+        "local_device_id": localID.text,
       }),
     );
     if (response.statusCode == 200) {
