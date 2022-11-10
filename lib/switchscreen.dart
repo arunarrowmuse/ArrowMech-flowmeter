@@ -1,13 +1,14 @@
-import 'package:arrowmech/Machine/MachineList.dart';
-import 'package:arrowmech/Machine/customreport.dart';
-import 'package:arrowmech/profile/profilepage.dart';
-import 'package:arrowmech/Auth/switchuser.dart';
-import 'package:arrowmech/supportpage.dart';
+
 import 'package:double_back_to_close_app/double_back_to_close_app.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Auth/switchuser.dart';
+import 'Machine/MachineList.dart';
 import 'Machine/ViewReport.dart';
+import 'Machine/customreport.dart';
 import 'constants.dart';
+import 'supportpage.dart';
 
 class Switcher extends StatefulWidget {
   int values;
@@ -22,6 +23,7 @@ class _SwitcherState extends State<Switcher> {
   late int currentpage;
   bool isLoad = false;
   String UserName = '';
+  String? companyname = "";
 
   List getPages = [
     const ViewReport(),
@@ -35,6 +37,13 @@ class _SwitcherState extends State<Switcher> {
   void initState() {
     super.initState();
     currentpage = widget.values;
+    getcompany();
+  }
+
+  Future<void> getcompany() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    companyname = prefs.getString("company");
+    setState(() {});
   }
 
   @override
@@ -49,16 +58,16 @@ class _SwitcherState extends State<Switcher> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           title: SizedBox(
-              height: 45,
-              child: Image.asset("assets/icons/Arrowmech.png")),
+              height: 45, child: Image.asset("assets/icons/Arrowmech.png")),
           centerTitle: true,
           elevation: 0,
           leading: Builder(builder: (context) {
             return GestureDetector(
               onTap: () {
                 Scaffold.of(context).openDrawer();
+                getcompany();
               },
-              child: Icon(Icons.menu, color: Colors.black, size: 25),
+              child: const Icon(Icons.menu, color: Colors.black, size: 25),
             );
           }),
         ),
@@ -88,21 +97,29 @@ class _SwitcherState extends State<Switcher> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
-                      "Welcome To",
+                      "Welcome",
                       style: TextStyle(
                           fontFamily: Constants.regular,
                           color: Colors.white,
                           fontSize: 25),
                     ),
-                    Text(
-                      "Company Name",
-                      style: TextStyle(
-                          fontFamily: Constants.semibold,
-                          color: Colors.white,
-                          fontSize: 30),
-                    ),
+                    (companyname == "null")
+                        ? Text(
+                            "Company Name",
+                            style: TextStyle(
+                                fontFamily: Constants.semibold,
+                                color: Colors.white,
+                                fontSize: 30),
+                          )
+                        : Text(
+                            companyname!.toString(),
+                            style: TextStyle(
+                                fontFamily: Constants.semibold,
+                                color: Colors.white,
+                                fontSize: 30),
+                          ),
                   ],
                 ),
               ),
@@ -113,7 +130,7 @@ class _SwitcherState extends State<Switcher> {
                         height: 25,
                         width: 25,
                         child: Image.asset("assets/icons/report.png")),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'View Report',
                       style: TextStyle(
@@ -135,7 +152,7 @@ class _SwitcherState extends State<Switcher> {
                         height: 25,
                         width: 25,
                         child: Image.asset("assets/icons/machinelist.png")),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'Custom Report',
                       style: TextStyle(
@@ -149,14 +166,15 @@ class _SwitcherState extends State<Switcher> {
                     currentpage = 1;
                   });
                 },
-              ),              ListTile(
+              ),
+              ListTile(
                 title: Row(
                   children: [
                     SizedBox(
                         height: 25,
                         width: 25,
                         child: Image.asset("assets/icons/machinelist.png")),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'Machine List',
                       style: TextStyle(
@@ -178,7 +196,7 @@ class _SwitcherState extends State<Switcher> {
                         height: 25,
                         width: 25,
                         child: Image.asset("assets/icons/user.png")),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'User Profile',
                       style: TextStyle(
@@ -200,7 +218,7 @@ class _SwitcherState extends State<Switcher> {
                         height: 25,
                         width: 25,
                         child: Image.asset("assets/icons/support.png")),
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
                     Text(
                       'Support',
                       style: TextStyle(

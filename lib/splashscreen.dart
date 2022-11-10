@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:arrowmech/switchscreen.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Auth/loginscreen.dart';
+import 'switchscreen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);

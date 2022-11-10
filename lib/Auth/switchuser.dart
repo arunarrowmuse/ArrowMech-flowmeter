@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'package:arrowmech/Auth/loginscreen.dart';
 import 'package:http/http.dart' as http;
-import 'package:arrowmech/profile/profilepage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants.dart';
+import '../profile/profilepage.dart';
 import '../switchscreen.dart';
 import 'adduser.dart';
+import 'loginscreen.dart';
 
 class SwitchUser extends StatefulWidget {
   const SwitchUser({Key? key}) : super(key: key);
@@ -22,6 +22,7 @@ class _SwitchUserState extends State<SwitchUser> {
   String Currentname = "";
   String Currentid = "";
   String Currenttoken = "";
+  String Currentpicktime = "";
   late SharedPreferences prefs;
   bool isLoad = false;
   String UserName = '';
@@ -49,15 +50,16 @@ class _SwitchUserState extends State<SwitchUser> {
     String? tokenvalue = prefs.getString("token");
     print("tokenvalue");
     print(tokenvalue);
-    final response = await http.post(
-      Uri.parse(Constants.weblink+Routes.LOGOUT),
+    final response = await http.get(
+      Uri.parse('${Constants.weblink}' + Routes.LOGOUT),
+      // Uri.parse('${Constants.weblink}' + Routes.LOGOUT),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $tokenvalue',
       },
-      body: jsonEncode(<String, String>{
-        'token': tokenvalue.toString(),
-      }),
+      // body: jsonEncode(<String, String>{
+      //   'token': tokenvalue.toString(),
+      // }),
     );
     print(response.statusCode);
     print(response.body);
@@ -71,7 +73,18 @@ class _SwitchUserState extends State<SwitchUser> {
       Currenttoken = prefs.getString('token')!;
       Currentname = prefs.getString("name")!;
       String? data = prefs.getString("UserList");
+      String? picktime = prefs.getString("picktime");
       List UserList = jsonDecode(data!);
+      if (UserList.length == 0) {
+        prefs.setInt('userid', 0);
+        prefs.setString('token', "");
+        prefs.setString("name", "");
+        prefs.setString('picktime', "");
+        Constants.showtoast("Logged Out Successfully!");
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => LoginPage()),
+                (Route<dynamic> route) => false);
+      }
       for (int i = 0; i < UserList.length; i++) {
         if (UserList[i]['token'] == Currenttoken) {
           /// check if token matches
@@ -97,22 +110,55 @@ class _SwitchUserState extends State<SwitchUser> {
             prefs.setInt('userid', 0);
             prefs.setString('token', "");
             prefs.setString("name", "");
+            prefs.setString('picktime', "");
             Constants.showtoast("Logged Out Successfully!");
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => LoginPage()));
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => LoginPage()),
+                    (Route<dynamic> route) => false);
           } else {
             prefs.setInt('userid', int.parse(UserList[0]['UserID']));
             prefs.setString('token', UserList[0]['token']);
             prefs.setString('name', UserList[0]['name']);
+            prefs.setString('picktime', UserList[0]['picktime']);
             Constants.showtoast(
                 "User Logged Out! \n User Changed to ${UserList[0]['name']}!");
             setState(() {
               isLoad = false;
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => Switcher(values: 0),
-                ),
-              );
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => Switcher(values: 0),
+                  ),
+                      (Route<dynamic> route) => false);
+            });
+          }
+        } else {
+          if (UserList.length == 0) {
+            prefs.setInt('userid', 0);
+            prefs.setString('token', "");
+            prefs.setString("name", "");
+            prefs.setString('picktime', "");
+            Constants.showtoast("Logged Out Successfully!");
+            setState(() {
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                      (Route<dynamic> route) => false);
+            });
+          } else {
+            prefs.setInt('userid', int.parse(UserList[0]['UserID']));
+            prefs.setString('token', UserList[0]['token']);
+            prefs.setString('name', UserList[0]['name']);
+            prefs.setString('picktime', UserList[0]['picktime']);
+            Constants.showtoast(
+                "User Logged Out! \n User Changed to ${UserList[0]['name']}!");
+
+            /// give back main to the previous user
+            setState(() {
+              isLoad = false;
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => Switcher(values: 0),
+                  ),
+                      (Route<dynamic> route) => false);
             });
           }
         }
@@ -140,10 +186,12 @@ class _SwitchUserState extends State<SwitchUser> {
     Currentid = prefs.getInt('userid').toString();
     Currenttoken = prefs.getString('token')!;
     Currentname = prefs.getString("name")!;
+    Currentpicktime = prefs.getString("picktime")!;
     print("Current Profile is");
     print(Currentid);
     print(Currentname);
     print(Currenttoken);
+    print(Currentpicktime);
     setState(() {
       isload = false;
     });
@@ -208,7 +256,7 @@ class _SwitchUserState extends State<SwitchUser> {
                                         // color: Colors.white,
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700,
-                                        fontFamily: Constants.regular),
+                                        fontFamily: Constants.semibold),
                                   ),
                                 ],
                               )
@@ -226,33 +274,45 @@ class _SwitchUserState extends State<SwitchUser> {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => ProfilePage()));
+                                        builder: (context) => ProfilePage(
+                                              name: Currentname,
+                                            )));
                               },
-                              child: Text(
-                                "Account Settings",
-                                style: TextStyle(
-                                  // color: Colors.white,
-                                  fontSize: 14,
-                                  // fontWeight: FontWeight.w700,
-                                  fontFamily: Constants.regular,
-                                ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.settings, color:  Constants.mainTheme, size: 18,),
+                                  Text(
+                                    " Account Settings",
+                                    style: TextStyle(
+                                      // color: Colors.white,
+                                      fontSize: 16,
+                                      // fontWeight: FontWeight.w700,
+                                      fontFamily: Constants.regular,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
                           GestureDetector(
-                            onTap: (){
+                            onTap: () {
                               LogoutUser();
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(15.0),
-                              child: Text(
-                                "Sign Out",
-                                style: TextStyle(
-                                  // color: Colors.white,
-                                  fontSize: 14,
-                                  // fontWeight: FontWeight.w700,
-                                  fontFamily: Constants.regular,
-                                ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.logout, color:  Constants.mainTheme, size: 18,),
+                                  Text(
+                                    " Sign Out",
+                                    style: TextStyle(
+                                      // color: Colors.white,
+                                      fontSize: 16,
+                                      // fontWeight: FontWeight.w700,
+                                      fontFamily: Constants.regular,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),

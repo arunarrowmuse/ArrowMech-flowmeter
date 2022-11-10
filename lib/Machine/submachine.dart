@@ -72,7 +72,7 @@ class _SubMachineState extends State<SubMachine> {
         // "categories": _textFieldController.text,
         "category_id": widget.id,
         "name": subname.text,
-        "iot_device_id": iotID.text ,
+        "iot_device_id": iotID.text,
         "local_device_id": localID.text,
       }),
     );
@@ -167,7 +167,7 @@ class _SubMachineState extends State<SubMachine> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Sub Machine  ( $submachinecount )",
+                      "Sub Machine",
                       style: TextStyle(
                           fontSize: 28, fontFamily: Constants.semibold),
                     ),
@@ -178,6 +178,9 @@ class _SubMachineState extends State<SubMachine> {
                         ),
                         ElevatedButton(
                             onPressed: () {
+                              subname.clear();
+                              iotID.clear();
+                              localID.clear();
                               _displayTextInputDialog(context);
                             },
                             style: ElevatedButton.styleFrom(
@@ -213,182 +216,216 @@ class _SubMachineState extends State<SubMachine> {
             ),
             (isLoad == true)
                 ? Container(
-              height: 500,
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: Constants.mainTheme,
-                ),
-              ),
-            )
-                : Expanded(
-              child: Scaffold(
-                body: ListView.builder(
-                  itemCount: data['data']['sub_categories'].length,
-                  itemBuilder: (context, index) {
-                    var submachine = data['data']['sub_categories'][index];
-                    return (widget.id ==
-                        submachine['category_id'].toString())
-                        ? Padding(
-                      padding: const EdgeInsets.only(
-                          left: 10, right: 10, bottom: 10, top: 10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.pink.withOpacity(0.05),
+                    height: 500,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Constants.mainTheme,
+                      ),
+                    ),
+                  )
+                : (data['data']['sub_categories'].length == 0)
+                    ? Container(
+                        height: 300,
+                        // color: Colors.red,
+                        child: Center(
+                          child: Text(
+                            "No Sub-Machines Currently.",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                              // fontFamily:
+                              // Constants.semibold
+                            ),
+                          ),
                         ),
-                        child: Column(
-                          children: <Widget>[
-                            SizedBox(
-                              height: 50,
-                              child: Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                        left: 15,
-                                        top: 8,
-                                        bottom: 8),
-                                    child: Text(
-                                      submachine['name']
-                                          .toString(),
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.black,
-                                          fontFamily:
-                                          Constants.semibold),
-                                    ),
-                                  ),
-                                  Padding(
-                                      padding:
-                                      const EdgeInsets.only(
-                                          top: 8,
-                                          bottom: 8,
-                                          right: 20),
-                                      child: SizedBox(
-                                        height: 25,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                          MainAxisAlignment
-                                              .spaceBetween,
-                                          children: [
-                                            GestureDetector(
-                                              child: Image.asset(
-                                                  'assets/icons/edit.png'),
-                                              onTap: () {
-                                                subname.text = submachine[
-                                                'name']
-                                                    .toString();
-                                                iotID.text = submachine[
-                                                'iot_device_id']
-                                                    .toString();
-                                                localID.text = submachine[
-                                                'local_device_id']
-                                                    .toString();
-                                                _updateDialog(
-                                                    context,
-                                                    submachine
-                                                    ['id']
-                                                        .toString());
-                                              },
+                      )
+                    : Expanded(
+                        child: Scaffold(
+                          body: ListView.builder(
+                            itemCount: data['data']['sub_categories'].length,
+                            itemBuilder: (context, index) {
+                              var submachine =
+                                  data['data']['sub_categories'][index];
+                              return (widget.id ==
+                                      submachine['category_id'].toString())
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(
+                                          left: 10,
+                                          right: 10,
+                                          bottom: 10,
+                                          top: 10),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          color: Colors.pink.withOpacity(0.05),
+                                        ),
+                                        child: Column(
+                                          children: <Widget>[
+                                            SizedBox(
+                                              height: 50,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 15,
+                                                            top: 8,
+                                                            bottom: 8),
+                                                    child: Text(
+                                                      submachine['name']
+                                                          .toString(),
+                                                      style: TextStyle(
+                                                          fontSize: 20,
+                                                          color: Colors.black,
+                                                          fontFamily: Constants
+                                                              .semibold),
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              top: 8,
+                                                              bottom: 8,
+                                                              right: 20),
+                                                      child: SizedBox(
+                                                        height: 25,
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceBetween,
+                                                          children: [
+                                                            GestureDetector(
+                                                              child: Image.asset(
+                                                                  'assets/icons/edit.png'),
+                                                              onTap: () {
+                                                                subname.text =
+                                                                    submachine[
+                                                                            'name']
+                                                                        .toString();
+                                                                iotID
+                                                                    .text = submachine[
+                                                                        'iot_device_id']
+                                                                    .toString();
+                                                                localID
+                                                                    .text = submachine[
+                                                                        'local_device_id']
+                                                                    .toString();
+                                                                _updateDialog(
+                                                                    context,
+                                                                    submachine[
+                                                                            'id']
+                                                                        .toString());
+                                                              },
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            GestureDetector(
+                                                              onTap: () {
+                                                                _deleteMachineDialog(
+                                                                    context,
+                                                                    submachine[
+                                                                            'id']
+                                                                        .toString());
+                                                              },
+                                                              child: Image.asset(
+                                                                  'assets/icons/delete.png'),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      )),
+                                                ],
+                                              ),
                                             ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                _deleteMachineDialog(
-                                                    context,
-                                                    submachine
-                                                    ['id']
-                                                        .toString());
-                                              },
-                                              child: Image.asset(
-                                                  'assets/icons/delete.png'),
-                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 10,
+                                                  top: 10,
+                                                  left: 20),
+                                              color: Colors.white,
+                                              child: Column(
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "IOT Device ID",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                Constants
+                                                                    .medium,
+                                                            fontSize: 15),
+                                                      ),
+                                                      Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .symmetric(
+                                                                  horizontal:
+                                                                      25),
+                                                          child: Text(
+                                                            submachine[
+                                                                    'iot_device_id']
+                                                                .toString(),
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    Constants
+                                                                        .regular,
+                                                                fontSize: 15),
+                                                          )),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "Local Device ID",
+                                                        style: TextStyle(
+                                                            fontFamily:
+                                                                Constants
+                                                                    .medium,
+                                                            fontSize: 15),
+                                                      ),
+                                                      Container(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .symmetric(
+                                                                  horizontal:
+                                                                      25),
+                                                          child: Text(
+                                                            submachine[
+                                                                    'local_device_id']
+                                                                .toString(),
+                                                            style: TextStyle(
+                                                                fontFamily:
+                                                                    Constants
+                                                                        .regular,
+                                                                fontSize: 15),
+                                                          )),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            )
                                           ],
                                         ),
-                                      )),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.only(
-                                  bottom: 10, top: 10, left: 20),
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceBetween,
-                                    children: [
-                                      Text(
-                                        "IOT Device ID",
-                                        style: TextStyle(
-                                            fontFamily:
-                                            Constants.medium,
-                                            fontSize: 15),
                                       ),
-                                      Container(
-                                          padding: const EdgeInsets
-                                              .symmetric(
-                                              horizontal: 25),
-                                          child: Text(
-                                            submachine[
-                                            'iot_device_id']
-                                                .toString(),
-                                            style: TextStyle(
-                                                fontFamily:
-                                                Constants
-                                                    .regular,
-                                                fontSize: 15),
-                                          )),
-                                    ],
-                                  ),
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment:
-                                    MainAxisAlignment
-                                        .spaceBetween,
-                                    children: [
-                                      Text(
-                                        "Local Device ID",
-                                        style: TextStyle(
-                                            fontFamily:
-                                            Constants.medium,
-                                            fontSize: 15),
-                                      ),
-                                      Container(
-                                          padding: const EdgeInsets
-                                              .symmetric(
-                                              horizontal: 25),
-                                          child: Text(
-                                            submachine[
-                                            'local_device_id']
-                                                .toString(),
-                                            style: TextStyle(
-                                                fontFamily:
-                                                Constants
-                                                    .regular,
-                                                fontSize: 15),
-                                          )),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
+                                    )
+                                  : Container();
+                            },
+                          ),
                         ),
                       ),
-                    )
-                        : Container();
-                  },
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -414,14 +451,8 @@ class _SubMachineState extends State<SubMachine> {
               ),
               content: Builder(
                 builder: (context) {
-                  var height = MediaQuery
-                      .of(context)
-                      .size
-                      .height;
-                  var width = MediaQuery
-                      .of(context)
-                      .size
-                      .width;
+                  var height = MediaQuery.of(context).size.height;
+                  var width = MediaQuery.of(context).size.width;
                   return SizedBox(
                     height: height / 6,
                     width: width / 1.5,
@@ -432,7 +463,7 @@ class _SubMachineState extends State<SubMachine> {
                           height: 60,
                           child: TextFormField(
                             validator: (value) =>
-                            value!.isEmpty ? 'Sub Category Required' : null,
+                                value!.isEmpty ? 'Sub Category Required' : null,
                             controller: subname,
                             style: TextStyle(
                               fontFamily: Constants.medium,
@@ -480,7 +511,7 @@ class _SubMachineState extends State<SubMachine> {
                               child: TextFormField(
                                 // keyboardType: TextInputType.number,
                                 validator: (value) =>
-                                value!.isEmpty ? 'IOT ID Required' : null,
+                                    value!.isEmpty ? 'IOT ID Required' : null,
                                 controller: iotID,
                                 style: TextStyle(
                                   fontFamily: Constants.medium,
@@ -528,7 +559,7 @@ class _SubMachineState extends State<SubMachine> {
                               child: TextFormField(
                                 keyboardType: TextInputType.number,
                                 validator: (value) =>
-                                value!.isEmpty ? 'Local Id Required' : null,
+                                    value!.isEmpty ? 'Local Id Required' : null,
                                 controller: localID,
                                 style: TextStyle(
                                   fontFamily: Constants.medium,
@@ -587,7 +618,7 @@ class _SubMachineState extends State<SubMachine> {
                       },
                       style: ButtonStyle(
                           textStyle:
-                          MaterialStateProperty.all<TextStyle>(TextStyle(
+                              MaterialStateProperty.all<TextStyle>(TextStyle(
                             fontSize: 16,
                             fontFamily: Constants.medium,
                           )),
@@ -625,14 +656,8 @@ class _SubMachineState extends State<SubMachine> {
             ),
             content: Builder(
               builder: (context) {
-                var height = MediaQuery
-                    .of(context)
-                    .size
-                    .height;
-                var width = MediaQuery
-                    .of(context)
-                    .size
-                    .width;
+                var height = MediaQuery.of(context).size.height;
+                var width = MediaQuery.of(context).size.width;
                 return Form(
                   key: _formKey,
                   child: SizedBox(
@@ -645,7 +670,7 @@ class _SubMachineState extends State<SubMachine> {
                           height: 60,
                           child: TextFormField(
                             validator: (value) =>
-                            value!.isEmpty ? 'Sub Category Required' : null,
+                                value!.isEmpty ? 'Sub Category Required' : null,
                             controller: subname,
                             style: TextStyle(
                               fontFamily: Constants.medium,
@@ -693,7 +718,7 @@ class _SubMachineState extends State<SubMachine> {
                               child: TextFormField(
                                 keyboardType: TextInputType.number,
                                 validator: (value) =>
-                                value!.isEmpty ? 'IOT ID Required' : null,
+                                    value!.isEmpty ? 'IOT ID Required' : null,
                                 controller: iotID,
                                 style: TextStyle(
                                   fontFamily: Constants.medium,
@@ -741,7 +766,7 @@ class _SubMachineState extends State<SubMachine> {
                               child: TextFormField(
                                 keyboardType: TextInputType.number,
                                 validator: (value) =>
-                                value!.isEmpty ? 'Local Id Required' : null,
+                                    value!.isEmpty ? 'Local Id Required' : null,
                                 controller: localID,
                                 style: TextStyle(
                                   fontFamily: Constants.medium,
@@ -860,7 +885,7 @@ class _SubMachineState extends State<SubMachine> {
                         fontFamily: Constants.medium,
                       )),
                       backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.white)),
+                          MaterialStateProperty.all<Color>(Colors.white)),
                   child: Text(
                     "Cancel",
                     style: TextStyle(
@@ -884,7 +909,7 @@ class _SubMachineState extends State<SubMachine> {
                         fontFamily: Constants.medium,
                       )),
                       backgroundColor:
-                      MaterialStateProperty.all<Color>(Colors.red)),
+                          MaterialStateProperty.all<Color>(Colors.red)),
                   child: Text(
                     "Delete",
                     style: TextStyle(

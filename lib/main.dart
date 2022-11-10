@@ -1,5 +1,7 @@
-import 'package:arrowmech/splashscreen.dart';
+
 import 'package:flutter/material.dart';
+
+import 'splashscreen.dart';
 
 
 void main() {
@@ -13,6 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flow Meter',
       theme: ThemeData(
         primarySwatch: Colors.red,

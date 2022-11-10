@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants.dart';
 import '../switchscreen.dart';
@@ -20,6 +21,21 @@ class _AddUserState extends State<AddUser> {
   bool session = false;
   bool isLoad = false;
   List UserData = [];
+  bool _isObscure = true;
+  final Uri arrowmech = Uri.parse('https://arrowmech.com');
+  final Uri arrowmuse = Uri.parse('https://arrowmuse.com');
+
+  Future<void> _launchmech() async {
+    if (!await launchUrl(arrowmech, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $arrowmech';
+    }
+  }
+
+  Future<void> _launchmuse() async {
+    if (!await launchUrl(arrowmuse, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $arrowmuse';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,31 +59,32 @@ class _AddUserState extends State<AddUser> {
                   SizedBox(
                     child: Padding(
                       padding:
-                      const EdgeInsets.only(left: 80, right: 80, top: 60),
-                      child: Image.asset(
-                          "assets/images/Arrowmech_Logo_Final-2.png"),
+                          const EdgeInsets.only(left: 60, right: 60, top: 80),
+                      child: Image.asset("assets/images/logofinal.png"),
+                      // "assets/images/Arrowmech_Logo.png"),
+                      // "assets/images/Arrowmech_Logo_Final-2.png"),
                     ),
                   ),
                   const SizedBox(
-                    height: 80,
+                    height: 40,
                   ),
-                  Text(
-                    "Welcome To",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        fontFamily: Constants.regular),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(top: 10),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        // _launchCaller();
+                        _launchmech();
+                      });
+                    },
                     child: Text(
-                      "Flowmeter Monitoring",
+                      'www.arrowmech.com',
                       style: TextStyle(
-                          fontFamily: Constants.semibold, fontSize: 34),
+                          fontFamily: Constants.semibold,
+                          color: Constants.mainTheme,
+                          fontSize: 20),
                     ),
                   ),
                   const SizedBox(
-                    height: 20,
+                    height: 40,
                   ),
                   Container(
                     padding: const EdgeInsets.only(bottom: 10, left: 30),
@@ -88,7 +105,7 @@ class _AddUserState extends State<AddUser> {
                         child: TextFormField(
                           controller: _email,
                           validator: (value) =>
-                          value!.isEmpty ? 'Email cannot be blank' : null,
+                              value!.isEmpty ? 'Email cannot be blank' : null,
                           style: TextStyle(
                               fontFamily: Constants.regular,
                               color: Colors.black,
@@ -126,21 +143,35 @@ class _AddUserState extends State<AddUser> {
                           validator: (value) => value!.isEmpty
                               ? 'Password cannot be blank'
                               : null,
-                          obscureText: true,
+                          obscureText: _isObscure,
                           style: TextStyle(
                               fontFamily: Constants.regular,
                               color: Colors.black,
                               fontSize: 18),
                           decoration: InputDecoration(
                               contentPadding: EdgeInsets.only(left: 20),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isObscure
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isObscure = !_isObscure;
+                                  });
+                                },
+                              ),
                               hintStyle: TextStyle(
                                 color: Colors.grey[400],
                                 fontFamily: Constants.regular,
                               ),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(15),
+                                borderRadius: BorderRadius.circular(15.0),
                               ),
-                              hintText: 'enter password'),
+                              filled: false,
+                              hintText: "password",
+                              fillColor: Colors.white70),
                         )),
                   ),
                   const SizedBox(
@@ -161,10 +192,18 @@ class _AddUserState extends State<AddUser> {
                           activeColor: Constants.mainTheme,
                         ),
                       ),
-                      Text(
-                        "Remember Me",
-                        style: TextStyle(
-                            fontFamily: Constants.regular, fontSize: 15),
+                      GestureDetector(
+                        onTap: (){
+                          setState(() {
+                            print("gotclicked");
+                            session =! session;
+                          });
+                        },
+                        child: Text(
+                          "Remember Me",
+                          style: TextStyle(
+                              fontFamily: Constants.regular, fontSize: 15),
+                        ),
                       )
                     ],
                   ),
@@ -185,18 +224,44 @@ class _AddUserState extends State<AddUser> {
                         child: Center(
                             child: (isLoad == false)
                                 ? Text(
-                              'Sign In',
-                              style: TextStyle(
-                                  fontFamily: Constants.regular,
-                                  fontSize: 16),
-                            )
+                                    'Sign In',
+                                    style: TextStyle(
+                                        fontFamily: Constants.regular,
+                                        fontSize: 16),
+                                  )
                                 : Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: const CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            ))),
-                  )
+                                    padding: const EdgeInsets.all(4.0),
+                                    child: const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  ))),
+                  ),
+                  const SizedBox(
+                    height: 100,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      _launchmuse();
+                    },
+                    child: Column(
+                      children: [
+                        Text(
+                          'Powered By :',
+                          style: TextStyle(
+                              fontFamily: Constants.medium,
+                              // color: Constants.mainTheme,
+                              fontSize: 14),
+                        ),
+                        SizedBox(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 120, right: 120, top: 5),
+                            child: Image.asset("assets/images/Logo.png"),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -216,7 +281,7 @@ class _AddUserState extends State<AddUser> {
           r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
           .hasMatch(email)) {
         final response = await http.post(
-          Uri.parse('${Constants.weblink}${Routes.LOGIN}'),
+          Uri.parse('${Constants.weblink}' + Routes.LOGIN),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8',
           },
@@ -236,32 +301,50 @@ class _AddUserState extends State<AddUser> {
             });
           } else {
             if (storesession == true) {
-              int userid = data['user']['id'];
-              String token = data['token'];
-              String name = data['user']['firstname'];
+              int userid = data['data']['user']['id'];
+              String token = data['data']['token'];
+              String name = data['data']['user']['name'];
+              String company = data['data']['user']['company_name'].toString();
+              String picktime = data['data']['user']['pick_time'].toString();
               SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.setInt('userid', userid);
               prefs.setString('token', token);
               prefs.setString('name', name);
+              prefs.setString('company', company);
+              prefs.setString('picktime', picktime);
               prefs.getString("UserList");
-
               if (prefs.getString("UserList") == null) {
                 prefs.setString(
                     "UserList",
                     jsonEncode([
-                      {"UserID": "$userid", "token": token, "name": name}
+                      {"UserID": "$userid", "token": token, "name": name, "picktime":picktime}
                     ]));
               } else {
                 String? data = prefs.getString("UserList");
                 List DecodeUser = jsonDecode(data!);
                 DecodeUser.add(
-                    {"UserID": "$userid", "token": token, "name": name});
+                    {"UserID": "$userid", "token": token, "name": name,"picktime":picktime});
                 prefs.setString("UserList", jsonEncode(DecodeUser));
               }
             } else {
-              String token = data['token'];
+              String token = data['data']['token'];
+              String name = data['data']['user']['name'];
+              String company = data['data']['user']['company_name'].toString();
+              String picktime = data['data']['user']['pick_time'].toString();
               SharedPreferences prefs = await SharedPreferences.getInstance();
+              if (prefs.getString("UserList") == null) {
+                prefs.setString("UserList", jsonEncode([]));
+              } else {
+                String? data = prefs.getString("UserList");
+                List DecodeUser = jsonDecode(data!);
+                // DecodeUser.add();
+                prefs.setString("UserList", jsonEncode(DecodeUser));
+              }
+              // SharedPreferences prefs = await SharedPreferences.getInstance();
               prefs.setString('token', token);
+              prefs.setString('name', name);
+              prefs.setString('company', company);
+              prefs.setString('picktime', picktime);
               print("do not store data");
             }
             setState(() {

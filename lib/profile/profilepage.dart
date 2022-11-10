@@ -5,7 +5,9 @@ import 'package:http/http.dart' as http;
 import '../../constants.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  String name;
+
+  ProfilePage({Key? key, required this.name}) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -14,6 +16,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool isLoad = false;
   var data;
+  var checkdata;
   late SharedPreferences prefs;
   String? tokenvalue;
   TextEditingController company = TextEditingController();
@@ -22,6 +25,14 @@ class _ProfilePageState extends State<ProfilePage> {
   TextEditingController standardtime = TextEditingController();
   TextEditingController password = TextEditingController();
   TextEditingController repeatpassword = TextEditingController();
+  TextEditingController bulkmail = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  String _setTime = "";
+  String _hour = "", _minute = "", _time = "";
+  TimeOfDay selectedTime = TimeOfDay(hour: 00, minute: 00);
+  TextEditingController _timeController = TextEditingController();
+  bool _isObscure = true;
+  bool _isObscure2 = true;
 
   @override
   void initState() {
@@ -36,7 +47,7 @@ class _ProfilePageState extends State<ProfilePage> {
     prefs = await SharedPreferences.getInstance();
     tokenvalue = prefs.getString("token");
     final response = await http.get(
-      Uri.parse('${Constants.weblink}GetProfileshowSingleView'),
+      Uri.parse('${Constants.weblink}profile'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $tokenvalue',
@@ -46,11 +57,27 @@ class _ProfilePageState extends State<ProfilePage> {
       data = jsonDecode(response.body);
       print("Fetch Profile");
       print(data);
-      company.text = data['company_name'];
-      email.text = data['email'];
-      number.text = data['mobile_no'];
-      _timeController.text = data['standartime'];
-      print(_timeController.text);
+      if (data['data']['user']['company_name'].toString() == "null") {
+        company.text = "";
+      } else {
+        company.text = data['data']['user']['company_name'].toString();
+      }
+      if (data['data']['user']['email'].toString() == "null") {
+        email.text = "";
+      } else {
+        email.text = data['data']['user']['email'].toString();
+      }
+      if (data['data']['user']['mobile'].toString() == "null") {
+        number.text = "";
+      } else {
+        number.text = data['data']['user']['mobile'].toString();
+      }
+      if (data['data']['user']['bulk_email'].toString() == "null") {
+        bulkmail.text = "";
+      } else {
+        bulkmail.text = data['data']['user']['bulk_email'].toString();
+      }
+      _timeController.text = data['data']['user']['pick_time'];
       setState(() {
         isLoad = false;
       });
@@ -63,28 +90,52 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void UpdateProfile(String id) async {
+    prefs.setString('company', company.text);
     print(tokenvalue);
     final response = await http.post(
-      Uri.parse('${Constants.weblink}ProfileUpdateSingle/$id'),
+      Uri.parse('${Constants.weblink}profile/update'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer $tokenvalue',
       },
       body: jsonEncode(<String, String>{
-        '_method': 'PUT',
-        'firstname':data['firstname'],
-        'surname':data['surname'],
-        'email':email.text,
-        'company_name':company.text,
-        'mobile_code':data['mobile_code'],
-        'mobile_no':number.text,
-        'address':data['address'],
-        'standartime':_timeController.text,
+        "name": widget.name,
+        "company_name": company.text,
+        "email": email.text,
+        "mobile": number.text,
+        "pick_time": _timeController.text,
+        "bulk_email": bulkmail.text,
       }),
     );
     if (response.statusCode == 200) {
-      // data = jsonDecode(response.body);
       Constants.showtoast("Profile Updated!");
+      prefs.setString('picktime', _timeController.text);
+      FetchProfile();
+    } else {
+      print(response.statusCode);
+      print(response.body);
+      Constants.showtoast("Error Fetching Data.");
+    }
+  }
+
+  void ChangePassword() async {
+    final response = await http.post(
+      Uri.parse('${Constants.weblink}password/change'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $tokenvalue',
+      },
+      body: jsonEncode(<String, String>{
+        "cpassword": password.text,
+        "password": repeatpassword.text,
+      }),
+    );
+    if (response.statusCode == 200) {
+      // checkdata = jsonDecode(response.body);
+      // if(checkdata[])
+      Constants.showtoast("Profile Updated!");
+      password.clear();
+      repeatpassword.clear();
       // _textFieldController.clear();
       FetchProfile();
     } else {
@@ -93,10 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
       Constants.showtoast("Error Fetching Data.");
     }
   }
-  String _setTime = "";
-  String _hour = "", _minute = "", _time = "" ;
-  TimeOfDay selectedTime = TimeOfDay(hour: 00, minute: 00);
-  TextEditingController _timeController = TextEditingController();
+
   Future<Null> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -107,29 +155,27 @@ class _ProfilePageState extends State<ProfilePage> {
         selectedTime = picked;
         _hour = selectedTime.hour.toString();
         _minute = selectedTime.minute.toString();
+        // strlen == 1 then num = ('0' + num);
+        if (_hour.length == 1) {
+          _hour = "0" + _hour;
+        }
+        if (_minute.length == 1) {
+          _minute = "0" + _minute;
+        }
         _time = _hour + ':' + _minute + ":00";
         _timeController.text = _time;
-        // _timeController.text = formatDate(
-        //     DateTime(2019, 08, 1, selectedTime.hour, selectedTime.minute),
-        //     [hh, ':', nn, " ", am]).toString();
-
         print("_timecontroller");
         print(_timeController.text);
       });
-    }}
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery
-        .of(context)
-        .size
-        .height;
-    final w = MediaQuery
-        .of(context)
-        .size
-        .width;
+    final h = MediaQuery.of(context).size.height;
+    final w = MediaQuery.of(context).size.width;
     return RefreshIndicator(
-      onRefresh: (){
+      onRefresh: () {
         return Future(() => FetchProfile());
       },
       child: Scaffold(
@@ -144,8 +190,8 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () {
                 Navigator.pop(context);
               },
-              child:
-              Icon(Icons.arrow_back_outlined, color: Colors.black, size: 25),
+              child: Icon(Icons.arrow_back_outlined,
+                  color: Colors.black, size: 25),
             );
           }),
         ),
@@ -168,233 +214,38 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               (isLoad == true)
                   ? Container(
-                height: 500,
-                child: Center(
-                  child: CircularProgressIndicator(
-                    color: Constants.mainTheme,
-                  ),
-                ),
-              )
+                      height: 500,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Constants.mainTheme,
+                        ),
+                      ),
+                    )
                   : Padding(
-                padding: const EdgeInsets.only(left: 30.0, right: 30.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Company Name :",
-                            style: TextStyle(
-                                fontFamily: Constants.regular,
-                                // color: Constants.textColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12),
-                          ),
-                          SizedBox(height: 7),
-                          SizedBox(
-                            height: 35,
-                            width: w * 0.9,
-                            child: TextField(
-                              controller: company,
-                              style: TextStyle(
-                                fontFamily: Constants.regular,
-                                color: Colors.black,
-                              ),
-                              decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.only(
-                                      bottom: 10.0, left: 10.0),
-                                  isDense: true,
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Constants.mainTheme,
-                                        width: 2.0),
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  filled: true,
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontFamily: Constants.regular,
-                                  ),
-                                  hintText: "company name",
-                                  fillColor: Colors.white70),
+                      padding: const EdgeInsets.only(left: 30.0, right: 30.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            const SizedBox(
+                              height: 20,
                             ),
-                          )
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Email :",
-                            style: TextStyle(
-                                fontFamily: Constants.regular,
-                                // color: Constants.textColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12),
-                          ),
-                          SizedBox(height: 7),
-                          SizedBox(
-                            height: 35,
-                            width: w * 0.9,
-                            child: TextField(
-                              controller: email,
-                              style: TextStyle(
-                                fontFamily: Constants.regular,
-                                color: Colors.black,
-                              ),
-                              decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.only(
-                                      bottom: 10.0, left: 10.0),
-                                  isDense: true,
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Constants.mainTheme,
-                                        width: 2.0),
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  filled: true,
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontFamily: Constants.regular,
-                                  ),
-                                  hintText: "enter email",
-                                  fillColor: Colors.white70),
-                            ),
-                          )
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          Text(
-                            "Phone Number",
-                            style: TextStyle(
-                                fontFamily: Constants.semibold,
-                                color: Colors.black,
-                                // fontWeight: FontWeight.w600,
-                                fontSize: 12),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 30,
-                                width: w * 0.12,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(8.0)),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "+91",
-                                    style: TextStyle(
-                                        fontFamily: Constants.regular,
-                                        // color: Colors.grey[700],
-                                        fontSize: 16),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 35,
-                                width: w * 0.70,
-                                child: TextField(
-                                  controller: number,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Company Name :",
                                   style: TextStyle(
-                                    fontFamily: Constants.regular,
-                                    color: Colors.black,
-                                  ),
-                                  decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.only(
-                                          bottom: 10.0, left: 10.0),
-                                      isDense: true,
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(8.0),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius:
-                                        BorderRadius.circular(8.0),
-                                        borderSide: BorderSide(
-                                            color: Colors.grey.shade300,
-                                            width: 1.0),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                            color: Constants.mainTheme,
-                                            width: 2.0),
-                                        borderRadius:
-                                        BorderRadius.circular(8.0),
-                                      ),
-                                      filled: true,
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey[400],
-                                        fontFamily: Constants.regular,
-                                      ),
-                                      hintText: "9000090000",
-                                      fillColor: Colors.white70),
+                                      fontFamily: Constants.regular,
+                                      // color: Constants.textColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Pick your time for daily report",
-                                style: TextStyle(
-                                    fontFamily: Constants.regular,
-                                    // color: Constants.textColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12),
-                              ),
-                              SizedBox(height: 7),
-                              GestureDetector(
-                                onTap:(){
-                                  _selectTime(context);
-                                },
-                                child: SizedBox(
+                                SizedBox(height: 7),
+                                SizedBox(
                                   height: 35,
                                   width: w * 0.9,
                                   child: TextField(
-                                    controller: _timeController,
-                                    enabled: false,
+                                    controller: company,
                                     style: TextStyle(
                                       fontFamily: Constants.regular,
                                       color: Colors.black,
@@ -405,11 +256,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                         isDense: true,
                                         border: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(8.0),
+                                              BorderRadius.circular(8.0),
                                         ),
                                         enabledBorder: OutlineInputBorder(
                                           borderRadius:
-                                          BorderRadius.circular(8.0),
+                                              BorderRadius.circular(8.0),
                                           borderSide: BorderSide(
                                               color: Colors.grey.shade300,
                                               width: 1.0),
@@ -419,156 +270,487 @@ class _ProfilePageState extends State<ProfilePage> {
                                               color: Constants.mainTheme,
                                               width: 2.0),
                                           borderRadius:
-                                          BorderRadius.circular(8.0),
+                                              BorderRadius.circular(8.0),
                                         ),
                                         filled: true,
                                         hintStyle: TextStyle(
                                           color: Colors.grey[400],
                                           fontFamily: Constants.regular,
                                         ),
-                                        prefixIcon: Icon(Icons.timelapse),
-                                        prefixIconColor: Constants.mainTheme,
-                                        hintText: "pick your time",
+                                        hintText: "company name",
                                         fillColor: Colors.white70),
                                   ),
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Email :",
+                                  style: TextStyle(
+                                      fontFamily: Constants.regular,
+                                      // color: Constants.textColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12),
                                 ),
-                              )
-                            ],
-                          ),
-                          ElevatedButton(
-                            onPressed: () {
-                              UpdateProfile(data['id'].toString());
-                            },
-                            style: ButtonStyle(
-                                backgroundColor:
-                                MaterialStateProperty.all<Color>(
-                                    Constants.mainTheme)),
-                            child: const Text("       Save       "),
-                          ),
-                          // const SizedBox(height: 10),
-                          const Divider(),
-                          const SizedBox(height: 10),
-                          Text(
-                            "CHANGE PASSWORD",
-                            style: TextStyle(
-                                fontFamily: Constants.regular,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            "New Password :",
-                            style: TextStyle(
-                                fontFamily: Constants.semibold,
-                                // color: Constants.textColor,
-                                // fontWeight: FontWeight.w600,
-                                fontSize: 12),
-                          ),
-                          SizedBox(height: 7),
-                          SizedBox(
-                            height: 35,
-                            width: w * 0.9,
-                            child: TextField(
-                              style: TextStyle(
-                                fontFamily: Constants.regular,
-                                color: Colors.black,
-                              ),
-                              decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.only(
-                                      bottom: 10.0, left: 10.0),
-                                  isDense: true,
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
+                                SizedBox(height: 7),
+                                SizedBox(
+                                  height: 35,
+                                  width: w * 0.9,
+                                  child: TextField(
+                                    controller: email,
+                                    style: TextStyle(
+                                      fontFamily: Constants.regular,
+                                      color: Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                        contentPadding: const EdgeInsets.only(
+                                            bottom: 10.0, left: 10.0),
+                                        isDense: true,
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          borderSide: BorderSide(
+                                              color: Colors.grey.shade300,
+                                              width: 1.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                              color: Constants.mainTheme,
+                                              width: 2.0),
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                        ),
+                                        filled: true,
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontFamily: Constants.regular,
+                                        ),
+                                        hintText: "enter email",
+                                        fillColor: Colors.white70),
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Constants.mainTheme,
-                                        width: 2.0),
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  filled: true,
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontFamily: Constants.regular,
-                                  ),
-                                  hintText: "enter password",
-                                  fillColor: Colors.white70),
+                                )
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "Repeat Password :",
-                            style: TextStyle(
-                                fontFamily: Constants.semibold,
-                                // color: Constants.textColor,
-                                // fontWeight: FontWeight.w600,
-                                fontSize: 12),
-                          ),
-                          SizedBox(height: 7),
-                          SizedBox(
-                            height: 35,
-                            width: w * 0.9,
-                            child: TextField(
-                              style: TextStyle(
-                                fontFamily: Constants.regular,
-                                color: Colors.black,
-                              ),
-                              decoration: InputDecoration(
-                                  contentPadding: const EdgeInsets.only(
-                                      bottom: 10.0, left: 10.0),
-                                  isDense: true,
-                                  border: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Phone Number",
+                                  style: TextStyle(
+                                      fontFamily: Constants.semibold,
+                                      color: Colors.black,
+                                      // fontWeight: FontWeight.w600,
+                                      fontSize: 12),
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 30,
+                                      width: w * 0.12,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(8.0)),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          "+91",
+                                          style: TextStyle(
+                                              fontFamily: Constants.regular,
+                                              // color: Colors.grey[700],
+                                              fontSize: 16),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 55,
+                                      width: w * 0.70,
+                                      child: TextField(
+                                        maxLength: 10,
+                                        controller: number,
+                                        style: TextStyle(
+                                          fontFamily: Constants.regular,
+                                          color: Colors.black,
+                                        ),
+                                        decoration: InputDecoration(
+                                            contentPadding:
+                                                const EdgeInsets.only(
+                                                    bottom: 10.0, left: 10.0),
+                                            isDense: true,
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                              borderSide: BorderSide(
+                                                  color: Colors.grey.shade300,
+                                                  width: 1.0),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Constants.mainTheme,
+                                                  width: 2.0),
+                                              borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                            ),
+                                            filled: true,
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontFamily: Constants.regular,
+                                            ),
+                                            hintText: "9000090000",
+                                            fillColor: Colors.white70),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Email List :",
+                                      style: TextStyle(
+                                          fontFamily: Constants.regular,
+                                          // color: Constants.textColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12),
+                                    ),
+                                    SizedBox(height: 7),
+                                    SizedBox(
+                                      height: 75,
+                                      width: w * 0.9,
+                                      child: TextField(
+                                        maxLines: 5,
+                                        controller: bulkmail,
+                                        style: TextStyle(
+                                          fontFamily: Constants.regular,
+                                          color: Colors.black,
+                                        ),
+                                        decoration: InputDecoration(
+                                            contentPadding: const EdgeInsets.only(
+                                                bottom: 10.0, left: 10.0),
+                                            isDense: true,
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(8.0),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                              BorderRadius.circular(8.0),
+                                              borderSide: BorderSide(
+                                                  color: Colors.grey.shade300,
+                                                  width: 1.0),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderSide: BorderSide(
+                                                  color: Constants.mainTheme,
+                                                  width: 2.0),
+                                              borderRadius:
+                                              BorderRadius.circular(8.0),
+                                            ),
+                                            filled: true,
+                                            hintStyle: TextStyle(
+                                              color: Colors.grey[400],
+                                              fontFamily: Constants.regular,
+                                            ),
+                                            hintText: "enter emails to send report",
+                                            fillColor: Colors.white70),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Pick your time for daily report",
+                                      style: TextStyle(
+                                          fontFamily: Constants.regular,
+                                          // color: Constants.textColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12),
+                                    ),
+                                    SizedBox(height: 7),
+                                    GestureDetector(
+                                      onTap: () {
+                                        _selectTime(context);
+                                      },
+                                      child: SizedBox(
+                                        height: 35,
+                                        width: w * 0.9,
+                                        child: TextField(
+                                          controller: _timeController,
+                                          enabled: false,
+                                          style: TextStyle(
+                                            fontFamily: Constants.regular,
+                                            color: Colors.black,
+                                          ),
+                                          decoration: InputDecoration(
+                                              contentPadding:
+                                                  const EdgeInsets.only(
+                                                      bottom: 10.0, left: 10.0),
+                                              isDense: true,
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.grey.shade300,
+                                                    width: 1.0),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Constants.mainTheme,
+                                                    width: 2.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              filled: true,
+                                              hintStyle: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontFamily: Constants.regular,
+                                              ),
+                                              prefixIcon: Icon(Icons.timelapse),
+                                              prefixIconColor:
+                                                  Constants.mainTheme,
+                                              hintText: "pick your time",
+                                              fillColor: Colors.white70),
+                                        ),
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                SizedBox(height: 10),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (number.text.length == 10 ||
+                                        number.text.length == 0) {
+                                      UpdateProfile(data['id'].toString());
+                                    } else {
+                                      Constants.showtoast(
+                                          "Please enter correct number");
+                                    }
+                                  },
+                                  style: ButtonStyle(
+                                      backgroundColor:
+                                          MaterialStateProperty.all<Color>(
+                                              Constants.mainTheme)),
+                                  child: const Text("       Save       "),
+                                ),
+                                // const SizedBox(height: 10),
+                                const Divider(),
+                                Form(
+                                  key: _formKey,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        "CHANGE PASSWORD",
+                                        style: TextStyle(
+                                            fontFamily: Constants.regular,
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      Text(
+                                        "New Password :",
+                                        style: TextStyle(
+                                            fontFamily: Constants.semibold,
+                                            // color: Constants.textColor,
+                                            // fontWeight: FontWeight.w600,
+                                            fontSize: 12),
+                                      ),
+                                      SizedBox(height: 7),
+                                      SizedBox(
+                                        height: 55,
+                                        width: w * 0.9,
+                                        child: TextFormField(
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Please enter new password';
+                                            }
+                                            return null;
+                                          },
+                                          obscureText: _isObscure2,
+                                          controller: password,
+                                          style: TextStyle(
+                                            fontFamily: Constants.regular,
+                                            color: Colors.black,
+                                          ),
+                                          decoration: InputDecoration(
+                                              contentPadding:
+                                                  const EdgeInsets.only(
+                                                      bottom: 10.0, left: 10.0),
+                                              suffixIcon: IconButton(
+                                                icon: Icon(
+                                                  _isObscure2
+                                                      ? Icons.visibility
+                                                      : Icons.visibility_off,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _isObscure2 = !_isObscure2;
+                                                  });
+                                                },
+                                              ),
+                                              isDense: true,
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.grey.shade300,
+                                                    width: 1.0),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Constants.mainTheme,
+                                                    width: 2.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              filled: true,
+                                              hintStyle: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontFamily: Constants.regular,
+                                              ),
+                                              hintText: "enter password",
+                                              fillColor: Colors.white70),
+                                        ),
+                                      ),
+                                      // const SizedBox(height: 10),
+                                      Text(
+                                        "Repeat Password :",
+                                        style: TextStyle(
+                                            fontFamily: Constants.semibold,
+                                            // color: Constants.textColor,
+                                            // fontWeight: FontWeight.w600,
+                                            fontSize: 12),
+                                      ),
+                                      SizedBox(height: 7),
+                                      SizedBox(
+                                        height: 55,
+                                        width: w * 0.9,
+                                        child: TextFormField(
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return 'Please re-enter new password';
+                                            }
+                                            return null;
+                                          },
+                                          obscureText: _isObscure,
+                                          controller: repeatpassword,
+                                          style: TextStyle(
+                                            fontFamily: Constants.regular,
+                                            color: Colors.black,
+                                          ),
+                                          decoration: InputDecoration(
+                                              contentPadding:
+                                                  const EdgeInsets.only(
+                                                      bottom: 10.0, left: 10.0),
+                                              suffixIcon: IconButton(
+                                                icon: Icon(
+                                                  _isObscure
+                                                      ? Icons.visibility
+                                                      : Icons.visibility_off,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _isObscure = !_isObscure;
+                                                  });
+                                                },
+                                              ),
+                                              isDense: true,
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                borderSide: BorderSide(
+                                                    color: Colors.grey.shade300,
+                                                    width: 1.0),
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Constants.mainTheme,
+                                                    width: 2.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                              ),
+                                              filled: true,
+                                              hintStyle: TextStyle(
+                                                color: Colors.grey[400],
+                                                fontFamily: Constants.regular,
+                                              ),
+                                              hintText: "enter password again",
+                                              fillColor: Colors.white70),
+                                        ),
+                                      ),
+                                      // const SizedBox(height: 10),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            if (password.text ==
+                                                repeatpassword.text) {
+                                              ChangePassword();
+                                            } else {
+                                              Constants.showtoast(
+                                                  "Password doesn't match");
+                                            }
+                                          } else {
+                                            Constants.showtoast(
+                                                "Enter new password first.");
+                                          }
+                                        },
+                                        style: ButtonStyle(
+                                            backgroundColor:
+                                                MaterialStateProperty.all<
+                                                        Color>(
+                                                    Constants.mainTheme)),
+                                        child: const Text("Update Password"),
+                                      ),
+                                    ],
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                        width: 1.0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Constants.mainTheme,
-                                        width: 2.0),
-                                    borderRadius:
-                                    BorderRadius.circular(8.0),
-                                  ),
-                                  filled: true,
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontFamily: Constants.regular,
-                                  ),
-                                  hintText: "enter password again",
-                                  fillColor: Colors.white70),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ButtonStyle(
-                                backgroundColor:
-                                MaterialStateProperty.all<Color>(
-                                    Constants.mainTheme)),
-                            child: const Text("Update Password"),
-                          ),
-                        ],
+
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
             ],
           ),
         ),

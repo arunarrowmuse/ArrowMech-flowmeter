@@ -1,10 +1,9 @@
 import 'dart:convert';
-
-import 'package:arrowmech/Machine/submachine.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../constants.dart';
+import 'submachine.dart';
 
 class MachineList extends StatefulWidget {
   const MachineList({Key? key}) : super(key: key);
@@ -196,7 +195,22 @@ class _MachineListState extends State<MachineList> {
                           ),
                         ),
                       )
-                    : Expanded(
+                    :
+                (data['data']['categories'].length == 0 )?Container(
+                  height: 300,
+                  // color: Colors.red,
+                  child:  Center(
+                    child: Text(
+                      "No Machines Currently.",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black,
+                        // fontFamily:
+                        // Constants.semibold
+                      ),
+                    ),
+                  ),
+                ):Expanded(
                         child: ListView.builder(
                             itemCount: data['data']['categories'].length,
                             itemBuilder: (BuildContext context, int index) {

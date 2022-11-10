@@ -1,4 +1,4 @@
-package com.example.arrowmech
+package com.arrowmuse.arrowmechflowmeter
 
 import io.flutter.embedding.android.FlutterActivity
 
