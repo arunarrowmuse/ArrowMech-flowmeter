@@ -532,7 +532,7 @@ class _ViewReportState extends State<ViewReport> {
                                             width: w / 2.2,
                                             // color: Colors.red,
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 5),
+                                                horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                                 border: Border.all(
                                                   color: Colors.red,
@@ -714,7 +714,7 @@ class _ViewReportState extends State<ViewReport> {
                                         Container(
                                             width: w / 4,
                                             padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 5),
+                                                horizontal: 10, vertical: 5),
                                             decoration: BoxDecoration(
                                                 // color: Colors.red,
                                                 border: Border.all(
