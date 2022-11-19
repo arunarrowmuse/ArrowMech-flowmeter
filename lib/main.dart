@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'splashscreen.dart';
 
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'Flow Meter',
       theme: ThemeData(
         primarySwatch: Colors.red,
+          appBarTheme: const AppBarTheme(systemOverlayStyle: SystemUiOverlayStyle.dark)
       ),
       home:  const SplashScreen(),
     );
