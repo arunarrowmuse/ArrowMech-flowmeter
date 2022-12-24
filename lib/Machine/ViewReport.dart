@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../constants.dart';
+import 'HourlyReport.dart';
 
 class ViewReport extends StatefulWidget {
   const ViewReport({Key? key}) : super(key: key);
@@ -84,10 +85,11 @@ class _ViewReportState extends State<ViewReport> {
   }
 
   Future<void> FetchData() async {
+    nowtime = DateTime.now();
     prefs = await SharedPreferences.getInstance();
     picktimevalue = prefs.getString("picktime");
-    // print("picktime is this ");
-    // print(picktimevalue);
+    print("picktime is this ");
+    print(nowtime.toString().split(" ")[1]);
 
     /// Full Day Report
     if (nowtime.toString().split(" ")[0] ==
@@ -503,53 +505,68 @@ class _ViewReportState extends State<ViewReport> {
                                 ),
                               ),
                               ListView.builder(
-                                itemCount: fulldaydata['data']['report'][index]
-                                        ['sub_category']
+                                itemCount: fulldaydata['data']['report']
+                                        [index]['sub_category']
                                     .length,
                                 itemBuilder: (context, sindex) {
                                   var submain = fulldaydata['data']['report']
                                       [index]['sub_category'][sindex];
-                                  return Container(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 10, top: 10, left: 20),
-                                    color: Colors.white,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        SizedBox(
-                                          width: w / 3,
-                                          child: Text(
-                                            submain['sub_category_name']
-                                                .toString(),
-                                            style: TextStyle(
-                                                fontFamily: Constants.regular,
-                                                fontSize: 16),
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => HourlyReport(
+                                                index:index,
+                                                subcategory: submain['sub_category_id'],
+                                                name: submain['sub_category_name'],
+                                              )));
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 10, top: 10, left: 20),
+                                      color: Colors.white,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          SizedBox(
+                                            width: w / 3,
+                                            child: Text(
+                                              submain['sub_category_name']
+                                                  .toString(),
+                                              style: TextStyle(
+                                                  fontFamily: Constants.regular,
+                                                  fontSize: 16),
+                                            ),
                                           ),
-                                        ),
-                                        Container(
-                                            // height: 32,
-                                            width: w / 2.2,
-                                            // color: Colors.red,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 5),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.red,
+                                          Container(
+                                              // height: 32,
+                                              width: w / 2.2,
+                                              // color: Colors.red,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 5),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.red,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(20))),
+                                              child: Center(
+                                                child: Text(
+                                                  submain['sub_total']
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      fontFamily:
+                                                          Constants.regular),
                                                 ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(20))),
-                                            child: Center(
-                                              child: Text(
-                                                submain['sub_total'].toString(),
-                                                style: TextStyle(
-                                                    fontSize: 18,
-                                                    fontFamily:
-                                                        Constants.regular),
-                                              ),
-                                            )),
-                                      ],
+                                              )),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },
@@ -688,75 +705,89 @@ class _ViewReportState extends State<ViewReport> {
                                         [index]['sub_category']
                                     .length,
                                 itemBuilder: (context, sindex) {
-                                  var shiftone = shiftday1data['data']['report']
-                                      [index]['sub_category'][sindex];
-                                  var shifttwo = shiftday2data['data']['report']
-                                      [index]['sub_category'][sindex];
-                                  return Container(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 10, top: 10, left: 20),
-                                    color: Colors.white,
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          width: w / 4,
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 5),
-                                          child: Text(
-                                            shiftone['sub_category_name'],
-                                            style: TextStyle(
-                                                fontFamily: Constants.regular,
-                                                fontSize: 15),
+                                  var shiftone = shiftday1data['data']
+                                          ['report'][index]['sub_category']
+                                      [sindex];
+                                  var shifttwo = shiftday2data['data']
+                                          ['report'][index]['sub_category']
+                                      [sindex];
+                                  return GestureDetector(
+                                    onTap: (){
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(
+                                      //         builder: (context) => const HourlyReport()));
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          bottom: 10, top: 10, left: 20),
+                                      color: Colors.white,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            width: w / 4,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 5),
+                                            child: Text(
+                                              shiftone['sub_category_name'],
+                                              style: TextStyle(
+                                                  fontFamily: Constants.regular,
+                                                  fontSize: 15),
+                                            ),
                                           ),
-                                        ),
-                                        Container(
-                                            width: w / 4,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 5),
-                                            decoration: BoxDecoration(
-                                                // color: Colors.red,
-                                                border: Border.all(
-                                                  color: Colors.red,
+                                          Container(
+                                              width: w / 4,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 5),
+                                              decoration: BoxDecoration(
+                                                  // color: Colors.red,
+                                                  border: Border.all(
+                                                    color: Colors.red,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(20))),
+                                              child: Center(
+                                                child: Text(
+                                                  shiftone['sub_total']
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      fontSize: 15,
+                                                      fontFamily:
+                                                          Constants.regular),
                                                 ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(20))),
-                                            child: Center(
-                                              child: Text(
-                                                shiftone['sub_total']
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    fontFamily:
-                                                        Constants.regular),
-                                              ),
-                                            )),
-                                        Container(
-                                            // height: 32,
-                                            width: w / 4,
-                                            // color: Colors.red,
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 20, vertical: 5),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(
-                                                  color: Colors.red,
+                                              )),
+                                          Container(
+                                              // height: 32,
+                                              width: w / 4,
+                                              // color: Colors.red,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 5),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                    color: Colors.red,
+                                                  ),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(20))),
+                                              child: Center(
+                                                child: Text(
+                                                  shifttwo['sub_total']
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      fontSize: 15,
+                                                      fontFamily:
+                                                          Constants.regular),
                                                 ),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(20))),
-                                            child: Center(
-                                              child: Text(
-                                                shifttwo['sub_total']
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    fontFamily:
-                                                        Constants.regular),
-                                              ),
-                                            )),
-                                      ],
+                                              )),
+                                        ],
+                                      ),
                                     ),
                                   );
                                 },
@@ -795,8 +826,8 @@ class _ViewReportState extends State<ViewReport> {
                                       //     right: 80, top: 8, bottom: 8),
                                       child: Center(
                                         child: Text(
-                                          shiftday1data['data']['report'][index]
-                                                  ['category_total']
+                                          shiftday1data['data']['report']
+                                                  [index]['category_total']
                                               .toString(),
                                           style: TextStyle(
                                               color: Colors.black,
@@ -814,8 +845,8 @@ class _ViewReportState extends State<ViewReport> {
                                       //     right: 80, top: 8, bottom: 8),
                                       child: Center(
                                         child: Text(
-                                          shiftday2data['data']['report'][index]
-                                                  ['category_total']
+                                          shiftday2data['data']['report']
+                                                  [index]['category_total']
                                               .toString(),
                                           style: TextStyle(
                                               color: Colors.black,
